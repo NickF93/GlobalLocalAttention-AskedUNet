@@ -1,79 +1,80 @@
 \documentclass{article}
+\usepackage[utf8]{inputenc}
 \usepackage{hyperref}
 
 \title{UNetWithAttention Class Documentation}
-\author{Author Name}
+\author{Niccolò Ferrari}
 \date{\today}
 
 \begin{document}
-
-\maketitle
-
-\section{Class UNetWithAttention}
-The \texttt{UNetWithAttention} class implements a U-Net architecture with attention mechanisms and configurable skip connections.
-
-\subsection*{Attributes}
-\begin{itemize}
-    \item \textbf{input\_shape} (tuple): The shape of the input image, e.g., (128, 128, 1) for grayscale images.
-    \item \textbf{timestamp\_dim} (int): The dimension of the timestamp input.
-    \item \textbf{filter\_list} (list): A list of integers representing the number of filters for each encoder/decoder block.
-    \item \textbf{num\_skip\_connections} (int): The number of skip connections from the deepest layer.
-    \item \textbf{num\_heads} (int): The number of attention heads in the multi-head attention layers.
-    \item \textbf{key\_dim} (int): The dimensionality of the key space for the multi-head attention.
-    \item \textbf{use\_bias} (bool): Whether to include biases in the layers.
-    \item \textbf{activation} (str): The activation function to use in the convolutional layers.
-    \item \textbf{model} (Model): The Keras model instance.
-\end{itemize}
-
-\subsection*{Methods}
-\subsubsection*{Constructor: \_\_init\_\_}
-\begin{verbatim}
-__init__(input_shape, timestamp_dim, filter_list, num_skip_connections, num_heads=4, key_dim=64, use_bias=False, activation='swish')
-\end{verbatim}
-Initializes the UNetWithAttention class.
-
-\begin{description}
-    \item[input\_shape] (tuple): The shape of the input images.
-    \item[timestamp\_dim] (int): The dimensionality of the timestamp input.
-    \item[filter\_list] (list): A list of filters for each encoder and decoder block.
-    \item[num\_skip\_connections] (int): The number of skip connections to include, starting from the deepest layer.
-    \item[num\_heads] (int): The number of heads for the multi-head attention layers.
-    \item[key\_dim] (int): The dimensionality of the key vectors for multi-head attention.
-    \item[use\_bias] (bool): Whether to use biases in convolutional layers and attention mechanisms.
-    \item[activation] (str): The activation function to use in the convolutional layers. Default is 'swish'.
-\end{description}
-
-\subsubsection*{Private Methods}
-These methods are intended for internal use within the class.
-
-\paragraph*{\texttt{\_conv\_block(x, filters)}}
-Creates a convolutional block consisting of Conv2D, BatchNormalization, and the specified activation.
-
-\paragraph*{\texttt{\_residual\_block(x, filters)}}
-Creates a residual block with a skip connection.
-
-\paragraph*{\texttt{\_multihead\_attention\_block(x)}}
-Applies a multi-head attention mechanism followed by a residual connection and layer normalization.
-
-\paragraph*{\texttt{\_positional\_embedding(x)}}
-Adds positional embeddings to the input tensor.
-
-\paragraph*{\texttt{\_encoder\_block(x, filters)}}
-Creates an encoder block consisting of a residual block followed by a downsampling operation.
-
-\paragraph*{\texttt{\_decoder\_block(x, skip\_features, filters)}}
-Creates a decoder block consisting of upsampling, concatenation with skip connections, and a residual block.
-
-\subsubsection*{Public Methods}
-These methods are available for external use.
-
-\paragraph*{\texttt{build\_model()}}
-Builds the U-Net model with attention mechanisms and stores it in the \texttt{model} attribute.
-
-\paragraph*{\texttt{print\_model()}}
-Prints the summary of the built model.
-
-\paragraph*{\texttt{save\_model\_plot(filename='unet\_model.png')}}
-Saves a plot of the model architecture to a file.
-
+	
+	\maketitle
+	
+	\section{Class UNetWithAttention}
+	The \texttt{UNetWithAttention} class implements a U-Net architecture with attention mechanisms and configurable skip connections.
+	
+	\subsection*{Attributes}
+	\begin{itemize}
+		\item \textbf{input\_shape} (tuple): The shape of the input image, e.g., (128, 128, 1) for grayscale images.
+		\item \textbf{timestamp\_dim} (int): The dimension of the timestamp input.
+		\item \textbf{filter\_list} (list): A list of integers representing the number of filters for each encoder/decoder block.
+		\item \textbf{num\_skip\_connections} (int): The number of skip connections from the deepest layer.
+		\item \textbf{num\_heads} (int): The number of attention heads in the multi-head attention layers.
+		\item \textbf{key\_dim} (int): The dimensionality of the key space for the multi-head attention.
+		\item \textbf{use\_bias} (bool): Whether to include biases in the layers.
+		\item \textbf{activation} (str): The activation function to use in the convolutional layers.
+		\item \textbf{model} (Model): The Keras model instance.
+	\end{itemize}
+	
+	\subsection*{Methods}
+	\subsubsection*{Constructor: \_\_init\_\_}
+	\begin{verbatim}
+		__init__(input_shape, timestamp_dim, filter_list, num_skip_connections, num_heads=4, key_dim=64, use_bias=False, activation='swish')
+	\end{verbatim}
+	Initializes the UNetWithAttention class.
+	
+	\begin{description}
+		\item[input\_shape] (tuple): The shape of the input images.
+		\item[timestamp\_dim] (int): The dimensionality of the timestamp input.
+		\item[filter\_list] (list): A list of filters for each encoder and decoder block.
+		\item[num\_skip\_connections] (int): The number of skip connections to include, starting from the deepest layer.
+		\item[num\_heads] (int): The number of heads for the multi-head attention layers.
+		\item[key\_dim] (int): The dimensionality of the key vectors for multi-head attention.
+		\item[use\_bias] (bool): Whether to use biases in convolutional layers and attention mechanisms.
+		\item[activation] (str): The activation function to use in the convolutional layers. Default is 'swish'.
+	\end{description}
+	
+	\subsubsection*{Private Methods}
+	These methods are intended for internal use within the class.
+	
+	\paragraph*{\texttt{\_conv\_block(x, filters)}}
+	Creates a convolutional block consisting of Conv2D, BatchNormalization, and the specified activation.
+	
+	\paragraph*{\texttt{\_residual\_block(x, filters)}}
+	Creates a residual block with a skip connection.
+	
+	\paragraph*{\texttt{\_multihead\_attention\_block(x)}}
+	Applies a multi-head attention mechanism followed by a residual connection and layer normalization.
+	
+	\paragraph*{\texttt{\_positional\_embedding(x)}}
+	Adds positional embeddings to the input tensor.
+	
+	\paragraph*{\texttt{\_encoder\_block(x, filters)}}
+	Creates an encoder block consisting of a residual block followed by a downsampling operation.
+	
+	\paragraph*{\texttt{\_decoder\_block(x, skip\_features, filters)}}
+	Creates a decoder block consisting of upsampling, concatenation with skip connections, and a residual block.
+	
+	\subsubsection*{Public Methods}
+	These methods are available for external use.
+	
+	\paragraph*{\texttt{build\_model()}}
+	Builds the U-Net model with attention mechanisms and stores it in the \texttt{model} attribute.
+	
+	\paragraph*{\texttt{print\_model()}}
+	Prints the summary of the built model.
+	
+	\paragraph*{\texttt{save\_model\_plot(filename='unet\_model.png')}}
+	Saves a plot of the model architecture to a file.
+	
 \end{document}
