@@ -1,79 +1,111 @@
 \documentclass{article}
-\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
 
-\title{UNetWithAttention Class Documentation}
-\author{Author Name}
-\date{\today}
+\title{UNetWithAttention Documentation}
+\author{}
+\date{}
 
 \begin{document}
 
 \maketitle
 
-\section{Class UNetWithAttention}
-The \texttt{UNetWithAttention} class implements a U-Net architecture with attention mechanisms and configurable skip connections.
+\section{UNetWithAttention Class}
 
-\subsection*{Attributes}
+\subsection{Overview}
+
+The \texttt{UNetWithAttention} class implements a U-Net architecture integrated with attention mechanisms and configurable skip connections. This model is designed to handle image segmentation tasks where attention mechanisms are used to improve the feature extraction process.
+
+\subsection{Attributes}
+
 \begin{itemize}
-    \item \textbf{input\_shape} (tuple): The shape of the input image, e.g., (128, 128, 1) for grayscale images.
-    \item \textbf{timestamp\_dim} (int): The dimension of the timestamp input.
-    \item \textbf{filter\_list} (list): A list of integers representing the number of filters for each encoder/decoder block.
-    \item \textbf{num\_skip\_connections} (int): The number of skip connections from the deepest layer.
+    \item \textbf{input\_shape} (tuple): The shape of the input image tensor, e.g., (224, 224, 3) for RGB images.
+    \item \textbf{timestamp\_dim} (int): The dimensionality of the timestamp input, e.g., 1 for a scalar timestamp.
+    \item \textbf{filter\_list} (list): A list of integers representing the number of filters for each encoder and decoder block.
+    \item \textbf{num\_skip\_connections} (int): The number of skip connections to include from the deepest layer of the encoder.
     \item \textbf{num\_heads} (int): The number of attention heads in the multi-head attention layers.
-    \item \textbf{key\_dim} (int): The dimensionality of the key space for the multi-head attention.
-    \item \textbf{use\_bias} (bool): Whether to include biases in the layers.
-    \item \textbf{activation} (str): The activation function to use in the convolutional layers.
-    \item \textbf{model} (Model): The Keras model instance.
+    \item \textbf{key\_dim} (int): The dimensionality of the key vectors for the multi-head attention layers.
+    \item \textbf{use\_bias} (bool): Whether to include biases in convolutional layers and attention mechanisms.
+    \item \textbf{activation} (str): The activation function to use in the convolutional layers, e.g., 'swish'.
+    \item \textbf{model} (Model): The Keras model instance representing the U-Net with attention architecture.
 \end{itemize}
 
-\subsection*{Methods}
-\subsubsection*{Constructor: \_\_init\_\_}
+\subsection{Methods}
+
+\paragraph{__init__}
 \begin{verbatim}
-__init__(input_shape, timestamp_dim, filter_list, num_skip_connections, num_heads=4, key_dim=64, use_bias=False, activation='swish')
+def __init__(self, input_shape, timestamp_dim, filter_list, num_skip_connections, num_heads=4, key_dim=64, use_bias=False, activation='swish'):
 \end{verbatim}
-Initializes the UNetWithAttention class.
+Initializes the UNetWithAttention class with the specified parameters.
 
-\begin{description}
-    \item[input\_shape] (tuple): The shape of the input images.
-    \item[timestamp\_dim] (int): The dimensionality of the timestamp input.
-    \item[filter\_list] (list): A list of filters for each encoder and decoder block.
-    \item[num\_skip\_connections] (int): The number of skip connections to include, starting from the deepest layer.
-    \item[num\_heads] (int): The number of heads for the multi-head attention layers.
-    \item[key\_dim] (int): The dimensionality of the key vectors for multi-head attention.
-    \item[use\_bias] (bool): Whether to use biases in convolutional layers and attention mechanisms.
-    \item[activation] (str): The activation function to use in the convolutional layers. Default is 'swish'.
-\end{description}
+\paragraph{_conv_block}
+\begin{verbatim}
+def _conv_block(self, x, filters):
+\end{verbatim}
+Creates a convolutional block consisting of Conv2D, BatchNormalization, and the specified activation function.
 
-\subsubsection*{Private Methods}
-These methods are intended for internal use within the class.
+\paragraph{_residual_block}
+\begin{verbatim}
+def _residual_block(self, x, filters):
+\end{verbatim}
+Creates a residual block with a skip connection, consisting of two convolutional blocks and a residual connection.
 
-\paragraph*{\texttt{\_conv\_block(x, filters)}}
-Creates a convolutional block consisting of Conv2D, BatchNormalization, and the specified activation.
+\paragraph{_neighborhood_attention}
+\begin{verbatim}
+def _neighborhood_attention(self, query, key, value, num_heads, key_dim, neighborhood_size, dropout_rate=0.1):
+\end{verbatim}
+Applies a Neighborhood Attention mechanism using MultiHeadAttention.
 
-\paragraph*{\texttt{\_residual\_block(x, filters)}}
-Creates a residual block with a skip connection.
+\paragraph{_multihead_attention_block}
+\begin{verbatim}
+def _multihead_attention_block(self, x):
+\end{verbatim}
+Applies a multi-head attention mechanism followed by a residual connection, layer normalization, and activation.
 
-\paragraph*{\texttt{\_multihead\_attention\_block(x)}}
-Applies a multi-head attention mechanism followed by a residual connection and layer normalization.
+\paragraph{_positional_embedding}
+\begin{verbatim}
+def _positional_embedding(self, x):
+\end{verbatim}
+Adds positional embeddings to the input tensor to incorporate positional information.
 
-\paragraph*{\texttt{\_positional\_embedding(x)}}
-Adds positional embeddings to the input tensor.
-
-\paragraph*{\texttt{\_encoder\_block(x, filters)}}
+\paragraph{_encoder_block}
+\begin{verbatim}
+def _encoder_block(self, x, filters):
+\end{verbatim}
 Creates an encoder block consisting of a residual block followed by a downsampling operation.
 
-\paragraph*{\texttt{\_decoder\_block(x, skip\_features, filters)}}
+\paragraph{_decoder_block}
+\begin{verbatim}
+def _decoder_block(self, x, skip_features, filters):
+\end{verbatim}
 Creates a decoder block consisting of upsampling, concatenation with skip connections, and a residual block.
 
-\subsubsection*{Public Methods}
-These methods are available for external use.
+\paragraph{build_model}
+\begin{verbatim}
+def build_model(self):
+\end{verbatim}
+Constructs the U-Net model with attention mechanisms and stores it in the \texttt{model} attribute.
 
-\paragraph*{\texttt{build\_model()}}
-Builds the U-Net model with attention mechanisms and stores it in the \texttt{model} attribute.
-
-\paragraph*{\texttt{print\_model()}}
+\paragraph{print_model}
+\begin{verbatim}
+def print_model(self):
+\end{verbatim}
 Prints the summary of the built model.
 
-\paragraph*{\texttt{save\_model\_plot(filename='unet\_model.png')}}
+\paragraph{save_model_plot}
+\begin{verbatim}
+def save_model_plot(self, filename='unet_model.png'):
+\end{verbatim}
 Saves a plot of the model architecture to a file.
+
+\section{Testing the Model}
+
+\paragraph{test_model}
+\begin{verbatim}
+def test_model():
+\end{verbatim}
+Tests the \texttt{UNetWithAttention} model with random data for different batch sizes (16 and 1). The function prints the shape of the predictions for each batch size.
 
 \end{document}
