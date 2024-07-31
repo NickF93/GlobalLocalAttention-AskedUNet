@@ -3,10 +3,15 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{listings}
+\usepackage{geometry}
+\usepackage{cite}
+
+\geometry{a4paper, margin=1in}
 
 \title{UNetWithAttention Documentation}
-\author{}
-\date{}
+\author{Niccolò Ferrari}
+\date{DD/MM/YYYY}
 
 \begin{document}
 
@@ -16,96 +21,163 @@
 
 \subsection{Overview}
 
-The \texttt{UNetWithAttention} class implements a U-Net architecture integrated with attention mechanisms and configurable skip connections. This model is designed to handle image segmentation tasks where attention mechanisms are used to improve the feature extraction process.
+The \texttt{UNetWithAttention} class implements an advanced U-Net architecture augmented with attention mechanisms and configurable skip connections. This class is designed to handle complex image segmentation tasks where attention mechanisms can enhance the model's ability to focus on crucial features, thereby improving the quality of predictions.
 
 \subsection{Attributes}
 
 \begin{itemize}
-    \item \textbf{input\_shape} (tuple): The shape of the input image tensor, e.g., (224, 224, 3) for RGB images.
-    \item \textbf{timestamp\_dim} (int): The dimensionality of the timestamp input, e.g., 1 for a scalar timestamp.
-    \item \textbf{filter\_list} (list): A list of integers representing the number of filters for each encoder and decoder block.
-    \item \textbf{num\_skip\_connections} (int): The number of skip connections to include from the deepest layer of the encoder.
-    \item \textbf{num\_heads} (int): The number of attention heads in the multi-head attention layers.
-    \item \textbf{key\_dim} (int): The dimensionality of the key vectors for the multi-head attention layers.
-    \item \textbf{use\_bias} (bool): Whether to include biases in convolutional layers and attention mechanisms.
-    \item \textbf{activation} (str): The activation function to use in the convolutional layers, e.g., 'swish'.
-    \item \textbf{model} (Model): The Keras model instance representing the U-Net with attention architecture.
+    \item \textbf{input\_shape} (tuple): The shape of the input image tensor, e.g., \((224, 224, 3)\) for RGB images.
+    \item \textbf{timestamp\_dim} (int): The dimensionality of the timestamp input, typically a scalar (e.g., \(1\)).
+    \item \textbf{filter\_list} (list): List of integers representing the number of filters for each encoder and decoder block.
+    \item \textbf{num\_skip\_connections} (int): Number of skip connections from the deepest layer of the encoder.
+    \item \textbf{num\_heads} (int): Number of attention heads in the multi-head attention layers.
+    \item \textbf{key\_dim} (int): Dimensionality of the key vectors for the multi-head attention layers.
+    \item \textbf{use\_bias} (bool): Whether biases are included in convolutional layers and attention mechanisms.
+    \item \textbf{activation} (str): Activation function used in the convolutional layers (e.g., 'swish').
+    \item \textbf{model} (Model): Keras Model instance representing the complete U-Net with attention architecture.
 \end{itemize}
 
 \subsection{Methods}
 
-\paragraph{__init__}
-\begin{verbatim}
+\paragraph{\texttt{\_\_init\_\_}}
+\begin{lstlisting}[language=Python]
 def __init__(self, input_shape, timestamp_dim, filter_list, num_skip_connections, num_heads=4, key_dim=64, use_bias=False, activation='swish'):
-\end{verbatim}
-Initializes the UNetWithAttention class with the specified parameters.
+\end{lstlisting}
+Initializes the \texttt{UNetWithAttention} class with specified parameters.
 
-\paragraph{_conv_block}
-\begin{verbatim}
+\paragraph{\texttt{\_conv\_block}}
+\begin{lstlisting}[language=Python]
 def _conv_block(self, x, filters):
-\end{verbatim}
-Creates a convolutional block consisting of Conv2D, BatchNormalization, and the specified activation function.
+\end{lstlisting}
+Creates a convolutional block with the following operations:
+\begin{itemize}
+    \item Convolution: \( \text{Conv2D}(x, \text{filters}, (3, 3), \text{padding}='same') \)
+    \item Batch Normalization: \( \text{BatchNormalization}(x) \)
+    \item Activation: \( \text{Activation}(\text{activation})(x) \)
+\end{itemize}
+The convolution operation can be expressed mathematically as:
+\[
+y = \text{Conv2D}(x) = \text{ReLU}((x * w) + b)
+\]
+where \( * \) denotes convolution, \( w \) is the filter, and \( b \) is the bias \cite{lecun1998gradient}.
 
-\paragraph{_residual_block}
-\begin{verbatim}
+\paragraph{\texttt{\_residual\_block}}
+\begin{lstlisting}[language=Python]
 def _residual_block(self, x, filters):
-\end{verbatim}
-Creates a residual block with a skip connection, consisting of two convolutional blocks and a residual connection.
+\end{lstlisting}
+Constructs a residual block with:
+\begin{itemize}
+    \item A residual connection: \( \text{Conv2D}(x, \text{filters}, (1, 1)) \)
+    \item Two convolutional blocks: \texttt{\_conv\_block}(x, filters)
+    \item An addition operation: \( x = x + \text{res} \)
+\end{itemize}
+The residual block can be mathematically represented as:
+\[
+\text{Output} = \text{Activation}(\text{Conv2D}_2(\text{Conv2D}_1(x) + \text{res}))
+\]
+This architecture follows the principles outlined in \cite{he2016deep}.
 
-\paragraph{_neighborhood_attention}
-\begin{verbatim}
+\paragraph{\texttt{\_neighborhood\_attention}}
+\begin{lstlisting}[language=Python]
 def _neighborhood_attention(self, query, key, value, num_heads, key_dim, neighborhood_size, dropout_rate=0.1):
-\end{verbatim}
-Applies a Neighborhood Attention mechanism using MultiHeadAttention.
+\end{lstlisting}
+Applies Neighborhood Attention using the MultiHeadAttention mechanism. Key steps include:
+\begin{itemize}
+    \item Reshape inputs: \(\text{query}, \text{key}, \text{value}\) to shape \([ \text{batch\_size}, \text{seq\_len}, \text{depth} ]\)
+    \item Compute attention mask based on neighborhood size \(N\):
+    \[
+    \text{Mask}_{ij} = 
+    \begin{cases} 
+    1 & \text{if } |i - j| \leq N \\
+    0 & \text{otherwise}
+    \end{cases}
+    \]
+    \item Apply MultiHeadAttention: \(\text{mha}(\text{query}, \text{key}, \text{value}, \text{attention\_mask})\)
+\end{itemize}
+The Neighborhood Attention mechanism builds on the principles outlined by \cite{vaswani2017attention} and \cite{parmar2018image}.
 
-\paragraph{_multihead_attention_block}
-\begin{verbatim}
+\paragraph{\texttt{\_multihead\_attention\_block}}
+\begin{lstlisting}[language=Python]
 def _multihead_attention_block(self, x):
-\end{verbatim}
-Applies a multi-head attention mechanism followed by a residual connection, layer normalization, and activation.
+\end{lstlisting}
+Uses multi-head attention and neighborhood attention:
+\begin{itemize}
+    \item Multi-Head Attention: \( \text{MultiHeadAttention}(x, x) \)
+    \item Neighborhood Attention: \texttt{\_neighborhood\_attention}
+    \item Apply residual and normalization:
+    \[
+    \text{Output} = \text{LayerNormalization}(\text{Activation}(x + \text{Attn\_Output} + \text{Nttn\_Output}))
+    \]
+\end{itemize}
+The use of multi-head attention is based on \cite{vaswani2017attention}.
 
-\paragraph{_positional_embedding}
-\begin{verbatim}
+\paragraph{\texttt{\_positional\_embedding}}
+\begin{lstlisting}[language=Python]
 def _positional_embedding(self, x):
-\end{verbatim}
-Adds positional embeddings to the input tensor to incorporate positional information.
+\end{lstlisting}
+Adds positional embeddings to the input tensor \(x\):
+\begin{itemize}
+    \item Compute positional embeddings: \(\text{pos\_emb} = \text{Embedding}(\text{positions})\)
+    \item Add to input tensor: \(x + \text{pos\_emb}\)
+\end{itemize}
+Positional embeddings are derived from \cite{vaswani2017attention}.
 
-\paragraph{_encoder_block}
-\begin{verbatim}
+\paragraph{\texttt{\_encoder\_block}}
+\begin{lstlisting}[language=Python]
 def _encoder_block(self, x, filters):
-\end{verbatim}
-Creates an encoder block consisting of a residual block followed by a downsampling operation.
+\end{lstlisting}
+Constructs an encoder block:
+\begin{itemize}
+    \item Apply residual block: \texttt{\_residual\_block}(x, filters)
+    \item Downsample with convolution: \( \text{Conv2D}(x, \text{filters}, (3, 3), \text{strides}=(2, 2)) \)
+\end{itemize}
+The downsampling operation can be expressed as:
+\[
+x_{\text{down}} = \text{Conv2D}(x, \text{filters}, (3, 3), \text{strides}=(2, 2))
+\]
 
-\paragraph{_decoder_block}
-\begin{verbatim}
+\paragraph{\texttt{\_decoder\_block}}
+\begin{lstlisting}[language=Python]
 def _decoder_block(self, x, skip_features, filters):
-\end{verbatim}
-Creates a decoder block consisting of upsampling, concatenation with skip connections, and a residual block.
+\end{lstlisting}
+Constructs a decoder block with:
+\begin{itemize}
+    \item Upsample: \( \text{Conv2DTranspose}(x, \text{filters}, (3, 3), \text{strides}=(2, 2)) \)
+    \item Concatenate with skip connections: \( x = \text{Concatenate}([x, \text{skip\_features}]) \)
+    \item Apply positional embedding and multi-head attention
+\end{itemize}
+The upsampling operation is:
+\[
+x_{\text{up}} = \text{Conv2DTranspose}(x, \text{filters}, (3, 3), \text{strides}=(2, 2))
+\]
 
-\paragraph{build_model}
-\begin{verbatim}
+\paragraph{build\_model}
+\begin{lstlisting}[language=Python]
 def build_model(self):
-\end{verbatim}
-Constructs the U-Net model with attention mechanisms and stores it in the \texttt{model} attribute.
+\end{lstlisting}
+Builds the complete U-Net model with attention mechanisms, including:
+\begin{itemize}
+    \item Encoder blocks
+    \item Bottleneck with residual and attention
+    \item Decoder blocks with skip connections
+    \item Output layer with sigmoid activation
+\end{itemize}
 
-\paragraph{print_model}
-\begin{verbatim}
+\paragraph{print\_model}
+\begin{lstlisting}[language=Python]
 def print_model(self):
-\end{verbatim}
+\end{lstlisting}
 Prints the summary of the built model.
 
-\paragraph{save_model_plot}
-\begin{verbatim}
-def save_model_plot(self, filename='unet_model.png'):
-\end{verbatim}
-Saves a plot of the model architecture to a file.
+\paragraph{save\_model\_plot}
+\begin{lstlisting}[language=Python]
+def save_model_plot(self, filename='model_plot.png'):
+\end{lstlisting}
+Saves a visual representation of the model architecture.
 
-\section{Testing the Model}
+\section{References}
 
-\paragraph{test_model}
-\begin{verbatim}
-def test_model():
-\end{verbatim}
-Tests the \texttt{UNetWithAttention} model with random data for different batch sizes (16 and 1). The function prints the shape of the predictions for each batch size.
+\bibliographystyle{plain}
+\bibliography{references}
 
 \end{document}

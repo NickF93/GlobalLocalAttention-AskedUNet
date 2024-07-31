@@ -239,7 +239,7 @@ class UNetWithAttention:
             filename (str): The filename for the plot image.
         """
         if self.model is not None:
-            plot_model(self.model, to_file=filename, show_shapes=True, show_layer_names=True)
+            plot_model(self.model, to_file=filename, show_shapes=True, show_dtype=True, show_layer_names=True, expand_nested=True, show_layer_activations=True, show_trainable=True)
         else:
             print("Model has not been built yet. Call `build_model()` first.")
 
@@ -255,8 +255,14 @@ def test_model():
 
     # Initialize the model
     unet_model = UNetWithAttention(input_shape, timestamp_dim, filter_list, num_skip_connections, use_bias=False)
+    print('Build model')
     unet_model.build_model()
+    print('Print model')
+    unet_model.print_model()
+    print('Plot model')
+    unet_model.save_model_plot(filename='/tmp/unet.png')
 
+    print('Test model')
     # Create random test data
     batch_sizes = [16, 1]
     for batch_size in batch_sizes:
