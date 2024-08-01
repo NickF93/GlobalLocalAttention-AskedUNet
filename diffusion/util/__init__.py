@@ -1,3 +1,3 @@
 # util/__init__.py
 
-from .config_loader import load_config
+from .load_conf import load_config
