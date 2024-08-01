@@ -184,9 +184,10 @@ class UNetWithAttention:
             tensor: Output tensor after applying the decoder block.
         """
         x = layers.Conv2DTranspose(filters, (3, 3), strides=(2, 2), padding='same', use_bias=self.use_bias)(x)
-        x = layers.Concatenate()([x, skip_features])
-        x = self._positional_embedding(x)
-        x = self._multihead_attention_block(x)
+        if skip_features is not None:
+            x = layers.Concatenate()([x, skip_features])
+            x = self._positional_embedding(x)
+            x = self._multihead_attention_block(x)
         x = self._residual_block(x, filters)
         return x
 
@@ -215,10 +216,14 @@ class UNetWithAttention:
 
         skip_connections = skip_connections[::-1]
         selected_skip_connections = skip_connections[:self.num_skip_connections]
-        for filters, skip_features in zip(self.filter_list[::-1], selected_skip_connections):
+        filter_list1 = (self.filter_list[::-1])[:self.num_skip_connections]
+        filter_list2 = (self.filter_list[::-1])[self.num_skip_connections:]
+        for filters, skip_features in zip(filter_list1, selected_skip_connections):
             b1 = self._decoder_block(b1, skip_features, filters)
+        for filters in filter_list2:
+            b1 = self._decoder_block(b1, None, filters)
 
-        outputs = layers.Conv2D(1, (1, 1), padding='same', activation='sigmoid', use_bias=self.use_bias)(b1)
+        outputs = layers.Conv2D(self.input_shape[-1], (1, 1), padding='same', activation='sigmoid', use_bias=self.use_bias)(b1)
 
         self.model = Model([img_input, time_input], outputs)
 
